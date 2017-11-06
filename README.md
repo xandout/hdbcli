@@ -35,7 +35,7 @@ Just use your arrow keys :)
 
 ### Profile
 
-This is currently loaded from `./config.json`, in the future this will be moved to `~/.hdbcli/` and we will support command line flags
+This is currently loaded from `~/.hdbcli_config.json` and we will support command line flags in the future.
 
 ```json
 

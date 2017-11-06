@@ -7,6 +7,10 @@ import (
 
 	"database/sql"
 
+	"os/user"
+
+	"path/filepath"
+
 	"github.com/chzyer/readline"
 	"github.com/xandout/hdbcli/config"
 	"github.com/xandout/hdbcli/database"
@@ -79,7 +83,11 @@ func handler(db *sql.DB, in string) {
 
 func main() {
 
-	conf, err := config.LoadConfiguration("config.json")
+	u, userErr := user.Current()
+	if userErr != nil {
+		log.Fatal(userErr)
+	}
+	conf, err := config.LoadConfiguration(filepath.Join(u.HomeDir, ".hdbcli_config.json"))
 
 	if err != nil {
 		log.Fatal(err)
@@ -98,7 +106,7 @@ func main() {
 
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:                 defPrompt,
-		HistoryFile:            "/tmp/readline-multiline",
+		HistoryFile:            filepath.Join(u.HomeDir, ".hdbcli_history"),
 		DisableAutoSaveHistory: false,
 	})
 	if err != nil {
