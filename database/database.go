@@ -39,11 +39,7 @@ func Initialize(configuration config.Configuration) error {
 	if err != nil {
 		return err
 	}
-	if err := DBCon.Ping(); err != nil {
-		return err
-	}
-
-	return nil
+	return DBCon.Ping()
 }
 
 // SimpleRows contains an array of columns and multi-dimensional array of rows in string format
