@@ -2,6 +2,7 @@
 
 This is a work-in-progress replacement for SAP's `hdbsql`
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/xandout/hdbcli)](https://goreportcard.com/report/github.com/xandout/hdbcli)
 
 ## Current improvements
 
