@@ -8,9 +8,10 @@ import (
 
 	"time"
 
+	"errors"
+
 	_ "github.com/SAP/go-hdb/driver"
 	"github.com/xandout/hdbcli/config"
-	"errors"
 )
 
 var (
@@ -46,11 +47,9 @@ func Initialize(configuration config.Configuration) error {
 
 type SimpleRows struct {
 	Columns []string
-	Rows [][]string
-	Length int
+	Rows    [][]string
+	Length  int
 }
-
-
 
 func ConvertRows(rows *sql.Rows) (simpleRows *SimpleRows, err error) {
 	simpleRows = new(SimpleRows)
@@ -79,7 +78,7 @@ func ConvertRows(rows *sql.Rows) (simpleRows *SimpleRows, err error) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		for i,v := range values {
+		for i, v := range values {
 			switch t := v.(type) {
 			case float64:
 				colVals[i] = fmt.Sprintf("%f", t)
