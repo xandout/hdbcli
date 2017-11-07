@@ -21,13 +21,13 @@ func (s Shortcut) Build(v ...interface{}) string {
 // Commands is a list of all default shortcuts
 var Commands = []Shortcut{
 	// This is roughly synonymous to the MySQL describe command
-	Shortcut{
+	{
 		Name: "describe",
 		SQL:  "SELECT COLUMN_NAME,DATA_TYPE_NAME,LENGTH,IS_NULLABLE, SCHEMA_NAME FROM TABLE_COLUMNS WHERE TABLE_NAME = '%s';",
 		Help: "describe TABLE_NAME;  Describes TABLE_NAME",
 	},
 	// This will show all the schemas in the current database
-	Shortcut{
+	{
 		Name: "schemas",
 		SQL:  "SELECT * FROM SCHEMAS;",
 		Help: "schemas; Show all schemas in database.",

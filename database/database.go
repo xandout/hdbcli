@@ -10,6 +10,7 @@ import (
 
 	"errors"
 
+	// Import the HDB driver
 	_ "github.com/SAP/go-hdb/driver"
 	"github.com/xandout/hdbcli/config"
 )
@@ -45,12 +46,14 @@ func Initialize(configuration config.Configuration) error {
 	return nil
 }
 
+// SimpleRows contains an array of columns and multi-dimensional array of rows in string format
 type SimpleRows struct {
 	Columns []string
 	Rows    [][]string
 	Length  int
 }
 
+// ConvertRows takes *sql.Rows and converts it to a SimpleRows
 func ConvertRows(rows *sql.Rows) (simpleRows *SimpleRows, err error) {
 	simpleRows = new(SimpleRows)
 	columns, err := rows.Columns()
