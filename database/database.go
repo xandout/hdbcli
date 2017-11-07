@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/SAP/go-hdb/driver"
 	"github.com/xandout/hdbcli/config"
+	"errors"
 )
 
 var (
@@ -43,7 +44,70 @@ func Initialize(configuration config.Configuration) error {
 	return nil
 }
 
-// PrintRows is a convenience method to print $COL_NAME : $COL_VALUE
+type SimpleRows struct {
+	Columns []string
+	Rows [][]string
+	Length int
+}
+
+
+
+func ConvertRows(rows *sql.Rows) (simpleRows *SimpleRows, err error) {
+	simpleRows = new(SimpleRows)
+	columns, err := rows.Columns()
+	colLen := len(columns)
+	if err != nil {
+		return simpleRows, err
+	}
+	if colLen > 0 {
+		simpleRows.Columns = columns
+	} else {
+		return simpleRows, errors.New("got 0 columns")
+	}
+	values := make([]interface{}, colLen)
+	scanArgs := make([]interface{}, colLen)
+	if err != nil {
+		return simpleRows, err
+	}
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	for rows.Next() {
+		colVals := make([]string, colLen)
+		err := rows.Scan(scanArgs...)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for i,v := range values {
+			switch t := v.(type) {
+			case float64:
+				colVals[i] = fmt.Sprintf("%f", t)
+			case bool:
+				colVals[i] = fmt.Sprintf("%t", t)
+			case string:
+				colVals[i] = fmt.Sprintf("%s", t)
+			case int64:
+				colVals[i] = fmt.Sprintf("%d", t)
+			case nil:
+				colVals[i] = "NULL"
+			case []uint8:
+				colVals[i] = fmt.Sprintf("%s", []byte(t[:]))
+			case time.Time:
+				colVals[i] = fmt.Sprintf("%s", t)
+			default:
+				colVals[i] = fmt.Sprintf("%v", t)
+
+			}
+		}
+		simpleRows.Rows = append(simpleRows.Rows, colVals)
+		simpleRows.Length++
+	}
+	return simpleRows, nil
+
+}
+
+// PrintRows is a convenience method to print $COL_NAME : $COL_VALUE  Very ugly but it works
 func PrintRows(rows *sql.Rows) error {
 	columns, err := rows.Columns()
 	if err != nil {
