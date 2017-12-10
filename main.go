@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"strings"
@@ -22,6 +23,56 @@ import (
 )
 
 var special = shortcuts.Commands
+
+func tablePrinter(simpleRows *database.SimpleRows) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader(simpleRows.Columns)
+	table.AppendBulk(simpleRows.Rows)
+	table.SetAlignment(tablewriter.ALIGN_RIGHT) // Set Alignment
+	table.Render()
+
+}
+
+func csvPrinter(simpleRows *database.SimpleRows, printHeader bool) {
+	if printHeader {
+		w := csv.NewWriter(os.Stdout)
+
+		header := [][]string{simpleRows.Columns}
+		for _, record := range header {
+			if err := w.Write(record); err != nil {
+				log.Fatalln("error writing record to csv:", err)
+			}
+		}
+
+		for _, record := range simpleRows.Rows {
+			if err := w.Write(record); err != nil {
+				log.Fatalln("error writing record to csv:", err)
+			}
+		}
+
+		// Write any buffered data to the underlying writer (standard output).
+		w.Flush()
+
+		if err := w.Error(); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		w := csv.NewWriter(os.Stdout)
+
+		for _, record := range simpleRows.Rows {
+			if err := w.Write(record); err != nil {
+				log.Fatalln("error writing record to csv:", err)
+			}
+		}
+
+		// Write any buffered data to the underlying writer (standard output).
+		w.Flush()
+
+		if err := w.Error(); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
 
 func handler(db *sql.DB, in string) {
 
@@ -64,11 +115,7 @@ func handler(db *sql.DB, in string) {
 			log.Fatal(err)
 		}
 
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader(converted.Columns)
-		table.AppendBulk(converted.Rows)
-		table.SetAlignment(tablewriter.ALIGN_RIGHT) // Set Alignment
-		table.Render()
+		csvPrinter(converted, false)
 
 	} else {
 		res, execErr := db.Exec(in)
@@ -120,6 +167,7 @@ func startREPL(u *user.User) {
 		if len(line) == 0 {
 			continue
 		}
+
 		cmds = append(cmds, line)
 
 		if !strings.HasSuffix(line, ";") {
