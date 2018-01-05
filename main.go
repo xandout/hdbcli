@@ -23,6 +23,7 @@ import (
 )
 
 var special = shortcuts.Commands
+var printType = "table"
 
 func tablePrinter(simpleRows *database.SimpleRows) {
 	table := tablewriter.NewWriter(os.Stdout)
@@ -85,7 +86,12 @@ func handler(db *sql.DB, in string) {
 			fmt.Printf("%s\n\tUsage %s\n", sc.Name, sc.Help)
 		}
 		return
-
+	case strings.ToLower(in) == "/out csv;":
+		printType = "csv"
+		return
+	case strings.ToLower(in) == "/out table;":
+		printType = "table"
+		return
 	}
 	for _, sc := range special {
 
@@ -115,7 +121,13 @@ func handler(db *sql.DB, in string) {
 			log.Fatal(err)
 		}
 
-		csvPrinter(converted, false)
+		switch printType {
+		case "table":
+			tablePrinter(converted)
+		case "csv":
+			csvPrinter(converted, true)
+		}
+
 
 	} else {
 		res, execErr := db.Exec(in)
