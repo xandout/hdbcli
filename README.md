@@ -14,19 +14,16 @@ This is a work-in-progress replacement for SAP's `hdbsql`
 
 * Profiles for simple invocation
 
+* Tab completion for shortcuts
+
+
+
 
 ## Usage
 
 ### Shell redirection
 
     hdbcli < test.sql
-    2017/11/06 16:41:02 no RowsAffected available after DDL statement
-    2017/11/06 16:41:02 0 Rows Affected
-    2017/11/06 16:41:02 no LastInsertId available after DDL statement
-    2017/11/06 16:41:02 0
-    2017/11/06 16:41:02 1 Rows Affected
-    2017/11/06 16:41:02 no LastInsertId available
-    2017/11/06 16:41:02 0
     
 ### Line editing
 
@@ -52,7 +49,17 @@ This is currently loaded from `~/.hdbcli_config.json` and we will support comman
 
 ### Shortcuts
 
-`schemas;` Shows all schemas in the current database.
+`/schemas` Shows all schemas in the current database.
 
-`describe TABLE_NAME;` Describes TABLE_NAME.
+`/describe TABLE_NAME` Describes TABLE_NAME.
 
+`/exit` Exits the CLI
+
+`/mode [csv|table]` Gets and sets the output mode
+
+
+### Known Limitations
+
+* LastInsertId and RowsAffected are always 0.  Maybe a bug upstream
+
+* Some SELECT queries hang forever.  Only 2 packets return, maybe an upstream bug

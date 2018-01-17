@@ -17,11 +17,12 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/xandout/gorpl"
+	"github.com/xandout/gorpl/action"
 	"github.com/xandout/hdbcli/config"
 	"github.com/xandout/hdbcli/db"
 )
 
-var mode string = "table"
+var mode = "table"
 
 func tablePrinter(simpleRows *db.SimpleRows) {
 	table := tablewriter.NewWriter(os.Stdout)
@@ -102,8 +103,31 @@ func main() {
 		log.Fatal(err)
 	}
 
-	g := gorpl.New("> ", ";")
-	g.AddAction("/describe", func(args ...interface{}) (interface{}, error) {
+	g := gorpl.New(";")
+
+	exitAction := action.New("/exit", func(args ...interface{}) (interface{}, error) {
+		fmt.Println("Bye!")
+		os.Exit(0)
+		return nil, nil
+	})
+	modeAction := action.New("/mode", func(args ...interface{}) (interface{}, error) {
+		if len(args) == 0 {
+			fmt.Printf("Current mode is %s\n", mode)
+		}
+		return "", nil
+	})
+	csvAction := action.New("csv", func(args ...interface{}) (interface{}, error) {
+		mode = "csv"
+		fmt.Printf("Mode set to %s\n", mode)
+
+		return "", nil
+	})
+	tableAction := action.New("table", func(args ...interface{}) (interface{}, error) {
+		mode = "table"
+		fmt.Printf("Mode set to %s\n", mode)
+		return "", nil
+	})
+	describeAction := action.New("/describe", func(args ...interface{}) (interface{}, error) {
 		fmtString := "SELECT COLUMN_NAME,DATA_TYPE_NAME,LENGTH,IS_NULLABLE, SCHEMA_NAME FROM TABLE_COLUMNS WHERE TABLE_NAME = '%s';"
 		if len(args) != 1 {
 			return nil, errors.New("describe function requires a table name to be supplied")
@@ -119,32 +143,29 @@ func main() {
 		print(&res.SRows)
 		return "", nil
 	})
-	g.AddAction("/exit", func(args ...interface{}) (interface{}, error) {
-		fmt.Println("Bye!")
-		os.Exit(0)
-		return nil, nil
-	})
-	g.AddAction("/mode", func(args ...interface{}) (interface{}, error) {
-		modes := map[string]bool{
-			"csv":   true,
-			"table": true,
-		}
-		if len(args) != 1 {
-			return nil, errors.New("mode function requires a valid output mode")
-		}
-		attemptedMode := args[0]
-		if modes[attemptedMode.(string)] {
-			mode = attemptedMode.(string)
-		} else {
-			fmt.Println("Valid modes are:")
-			for k := range modes {
-				fmt.Printf("\t%s\n", k)
-			}
-		}
-		return "", nil
+	schemasAction := action.New("/schemas", func(args ...interface{}) (interface{}, error) {
+		finalQ := "SELECT * FROM SCHEMAS;"
 
+		fmt.Println(finalQ)
+		g.RL.SaveHistory(finalQ)
+		res, err := d.Run(finalQ)
+		if err != nil {
+			log.Println(err)
+			return "", err
+		}
+		print(&res.SRows)
+		return "", nil
 	})
-	g.Default = gorpl.Action{
+	//Register parent Actions
+	g.AddAction(*modeAction)
+	g.AddAction(*exitAction)
+	g.AddAction(*describeAction)
+	g.AddAction(*schemasAction)
+	//Register children Actions
+	modeAction.AddChild(csvAction)
+	modeAction.AddChild(tableAction)
+
+	g.Default = action.Action{
 		Action: func(args ...interface{}) (interface{}, error) {
 			res, err := d.Run(args[0].(string))
 			if err != nil {
@@ -162,5 +183,4 @@ func main() {
 		},
 	}
 	g.Start()
-
 }
