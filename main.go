@@ -156,15 +156,15 @@ func main() {
 		print(&res.SRows)
 		return "", nil
 	})
+
+	//Register children Actions
+	modeAction.AddChild(csvAction)
+	modeAction.AddChild(tableAction)
 	//Register parent Actions
 	g.AddAction(*modeAction)
 	g.AddAction(*exitAction)
 	g.AddAction(*describeAction)
 	g.AddAction(*schemasAction)
-	//Register children Actions
-	modeAction.AddChild(csvAction)
-	modeAction.AddChild(tableAction)
-
 	g.Default = action.Action{
 		Action: func(args ...interface{}) (interface{}, error) {
 			res, err := d.Run(args[0].(string))
